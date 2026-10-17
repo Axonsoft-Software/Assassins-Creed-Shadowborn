@@ -8,6 +8,7 @@ Technischer Fan-Prototyp eines narrativen Stealth-Actionspiels im industriellen 
 
 **Stand:** 17. Oktober 2026  
 **Entwicklungsphase:** Vertical Slice G5  
+**Aktueller Arbeitsschritt:** Hafen-Streaming W2 abgeschlossen, W3 GPU-Staging als nächster Planpunkt
 **Reifegrad:** spielbarer Technikprototyp, nicht produktions- oder veröffentlichungsfertig
 
 | Bereich | Status | Aktueller Umfang |
@@ -19,8 +20,8 @@ Technischer Fan-Prototyp eines narrativen Stealth-Actionspiels im industriellen 
 | Gameplay | Vertical Slice | Bewegung, Schleichen, Wachen, Dialoge, Interaktionen und Missionsfortschritt |
 | Simulation | Vertical Slice | Deterministischer Takt, Hafenarbeiter, Zug, Schiffe und Liegeplatzlogik |
 | Speichern | Prototyp integriert | Versionierte Checkpoints mit Primary-/Backup-Datei und Wiederaufnahme |
-| Streaming | W1 integriert | Validierte Hafenzellen; asynchrones W2-Preloading noch offen |
-| Tests | Teilweise verifiziert | Letzter vollständiger Core-Lauf: 99/99; zusätzliche Audio-Bank-Tests vorhanden |
+| Streaming | W2 integriert | Validierte Hafenzellen und atomarer CPU-Preload; GPU-Staging und dynamische Zellwechsel noch offen |
+| Tests | Teilweise verifiziert | Letzter vollständiger Core-Lauf: 99/99; zusätzliche Audio-, Lizenz- und Streamingtests vorhanden |
 
 ## Plattform-Support
 
@@ -32,6 +33,8 @@ Technischer Fan-Prototyp eines narrativen Stealth-Actionspiels im industriellen 
 | Linux | Kein App-Target | Nur Teile des plattformunabhängigen Swift-Kerns sind über SwiftPM nutzbar |
 
 Apple-Plattformen benötigen Xcode mit Metal-/MetalKit- und AVFAudio-Unterstützung. Konkrete Release-Mindestversionen sind noch nicht als stabiler öffentlicher Supportvertrag freigegeben.
+
+Die momentane Xcode-Projektkonfiguration verwendet die Beta-SDK-Ziele iOS 27.2 und macOS 27.2. Das beschreibt den aktuellen Entwicklungsstand und ist noch keine endgültige öffentliche Mindestanforderung.
 
 ## Bereits implementiert
 
@@ -49,6 +52,9 @@ Apple-Plattformen benötigen Xcode mit Metal-/MetalKit- und AVFAudio-Unterstütz
 - Audio-Engine mit Music-, Ambience-, Foley-, Dialogue-, SFX-, UI- und Accessibility-Bussen
 - Dialog-Ducking, räumliche Monoquellen, Occlusion und priorisiertes 24-Stimmen-Budget
 - Validiertes Audio-Bank-Manifest mit Concurrency-Gruppen und Untertitelbindung
+- Validiertes Asset-Lizenzregister, das Platzhalter erlaubt, aber einen Release nachvollziehbar blockiert
+- Abbrechbares CPU-Asset-Preloading mit atomarem Commit, Residency-Cache und prozeduralen Assettypen
+- W1/W2-Streamingverträge werden im macOS-Bundle geladen; der initiale Central-Preload ist zur Laufzeit nachgewiesen
 
 ## Noch nicht fertig
 
@@ -57,7 +63,7 @@ Apple-Plattformen benötigen Xcode mit Metal-/MetalKit- und AVFAudio-Unterstütz
 - Vollständige Kampagne und offene Welt
 - Vollständiger iOS-Gameplay-Loop
 - Musik-Crossfades, Lautheitsabnahme und Geräte-Hörtests
-- Asynchrones Weltzellen-Preloading und belastbare Geräte-Benchmarks
+- GPU-Staging, dynamische Nachbarzellenwechsel und belastbare Geräte-Benchmarks
 - Finale VoiceOver-, Dynamic-Type-, Kontrast- und Motion-Safety-Abnahme auf Geräten
 - Release-Signing, Store-Verteilung, Lizenzprüfung und produktionsreifes Branding
 
@@ -104,11 +110,22 @@ Letzter bestätigter Stand:
 
 - 99 von 99 Core-Tests in 18 Suites bestanden
 - 5 von 5 `ShadowbornContracts`-Xcode-Tests bestanden
-- macOS-App erfolgreich gebaut, 0 Buildfehler
-- iOS-App erfolgreich auf `My Mac (Designed for iPad)` gebaut, 0 Buildfehler
-- Drei neue Audio-Bank-Tests sind vorhanden; der abschließende SwiftPM-Gesamtlauf wurde zuletzt durch einen verwaisten lokalen `.build`-Lock verhindert
+- macOS-App zuletzt auf `My Mac` erfolgreich gebaut, 0 Buildfehler
+- iOS-App zuletzt auf `My Mac (Designed for iPad)` erfolgreich gebaut, 0 Buildfehler
+- W1-/W2-Manifest und Assetkatalog wurden im macOS-App-Bundle ohne Fallback geladen
+- Der Central-Preload lud Layout, Interaktionen und Pfade mit positiver residenter Bytezahl
+- Ein ausgeführter Fehlerpfad bestätigte atomaren Rollback und anschließende Cache-Wiederverwendung
+- Neun neue Audio-, Lizenz- und Streamingtests sind vorhanden; der abschließende SwiftPM-Gesamtlauf wurde zuletzt durch einen verwaisten lokalen `.build`-Lock verhindert
 
 Details stehen in `Docs/Docs/Handoff/G5/BUILD_REPORT.md`, `TEST_REPORT.md` und `KNOWN_ISSUES.md`.
+
+## Nächste Planpunkte
+
+1. W3: CPU-Daten kontrolliert in Metal-Ressourcen überführen und erst nach GPU-Completion sichtbar schalten.
+2. Positionsabhängige Nachbarzellen-Requests mit Prioritäten und Abbruch veralteter Requests.
+3. Eviction bei Speicherdruck, ohne Missions-, Quest- oder NPC-Identitäten zu verlieren.
+4. STREAM-001 bis STREAM-005 als reproduzierbare Laufzeitprüfungen ausführen.
+5. G5-Abnahme mit Release-Build, GPU-Capture, Crash-/Fokustest, Geräte-Accessibility und echten Lizenznachweisen.
 
 ## Repository-Struktur
 
@@ -139,4 +156,3 @@ Geplante Inhalte in den Dokumenten sind nicht automatisch bereits implementiert.
 ## Pflege dieser README
 
 Diese Datei wird bei jeder wesentlichen Entwicklungsstufe mitgeführt. Änderungen an Plattform-Support, Buildstatus, Teststand, implementierten Systemen oder bekannten Einschränkungen müssen hier zusammen mit den zugehörigen Handoff-Berichten aktualisiert werden.
-
