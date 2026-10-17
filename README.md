@@ -8,7 +8,7 @@ Technischer Fan-Prototyp eines narrativen Stealth-Actionspiels im industriellen 
 
 **Stand:** 17. Oktober 2026  
 **Entwicklungsphase:** Vertical Slice G5  
-**Aktueller Arbeitsschritt:** Hafen-Streaming W1–W5 plus W6-Diagnostik integriert; weitere STREAM-Abnahmefälle laufen
+**Aktueller Arbeitsschritt:** Hafen-Streaming W1–W6 und STREAM-001–005-Kernabnahme integriert; Langzeitlauf und Geräteprofiling folgen
 **Reifegrad:** spielbarer Technikprototyp, nicht produktions- oder veröffentlichungsfertig
 
 | Bereich | Status | Aktueller Umfang |
@@ -61,6 +61,7 @@ Die momentane Xcode-Projektkonfiguration verwendet die Beta-SDK-Ziele iOS 27.2 u
 - W5 reagiert auf macOS-Speicherdruck, reduziert Sichtweite und Renderbudget und hält beim Streaming nur die Fokuszelle resident
 - W6 erfasst Requests, Completions, Abbrüche, Fehler, Speicherdruck, CPU-Bytes, GPU-Sichtbarkeit und maximale Zellresidenz
 - Ein referenzgezählter Residency-Ledger schützt gemeinsam verwendete Assets und weist veraltete Commits zurück
+- STREAM-002–005 sichern Zugkontinuität, Missionsbeweise, saubere Uploadabbrüche und konsistente Checkpoint-Wiederaufnahme
 
 ## Noch nicht fertig
 
@@ -69,7 +70,7 @@ Die momentane Xcode-Projektkonfiguration verwendet die Beta-SDK-Ziele iOS 27.2 u
 - Vollständige Kampagne und offene Welt
 - Vollständiger iOS-Gameplay-Loop
 - Musik-Crossfades, Lautheitsabnahme und Geräte-Hörtests
-- Vollständige STREAM-001-bis-005-Langzeittests und belastbare Geräte-Benchmarks
+- Zehnminütige STREAM-001-bis-005-Laufzeitabnahme und belastbare Geräte-Benchmarks
 - Finale VoiceOver-, Dynamic-Type-, Kontrast- und Motion-Safety-Abnahme auf Geräten
 - Release-Signing, Store-Verteilung, Lizenzprüfung und produktionsreifes Branding
 
@@ -121,19 +122,22 @@ Letzter bestätigter Stand:
 - W1-/W2-Manifest und Assetkatalog wurden im macOS-App-Bundle ohne Fallback geladen
 - Der Central-Preload lud Layout, Interaktionen und Pfade mit positiver residenter Bytezahl
 - Ein ausgeführter Fehlerpfad bestätigte atomaren Rollback und anschließende Cache-Wiederverwendung
-- Vierundzwanzig neue Audio-, Lizenz- und Streamingtests sind vorhanden; der abschließende SwiftPM-Gesamtlauf wurde zuletzt durch einen verwaisten lokalen `.build`-Lock verhindert
+- Achtundzwanzig neue Audio-, Lizenz- und Streamingtests sind vorhanden; der abschließende SwiftPM-Gesamtlauf wurde zuletzt durch einen verwaisten lokalen `.build`-Lock verhindert
 - Ein echter Metal-Blit bestätigte GPU-Sichtbarkeit nach Completion sowie vollständige Eviction
 - Ein Positionslauf bestätigte Central → Rail → Docks einschließlich deterministischer Nachbarpriorität und Eviction
 - Ein Culling-/Speicherdrucklauf hielt 41 Simulationskandidaten erhalten, reduzierte kritisches Rendering auf 12 und behielt eine entfernte alarmierte Wache sichtbar
 - Ein W6-Stresslauf bestätigte 100 duplikatfreie Rail-/Docks-Wechsel sowie getrennte Completion-, Abbruch-, Fehler- und Speicherdruckmetriken
+- STREAM-002 ergab bei 2.500 Ticks und wiederholten Zellwechseln 0 Abweichungen zur Zugreferenz sowie eine planmäßige Ankunft
+- STREAM-003 bestätigte einen konsistenten Missionsbeweis nach Serialisierung; STREAM-004 hinterließ nach Abbruch 0 residente Assets und 0 Bytes
+- STREAM-005 deckt die Wiederaufnahme von Spieler-, Missions- und Zugzustand aus einem neu geöffneten Checkpoint-Store ab
 
 Details stehen in `Docs/Docs/Handoff/G5/BUILD_REPORT.md`, `TEST_REPORT.md` und `KNOWN_ISSUES.md`.
 
 ## Nächste Planpunkte
 
-1. STREAM-002 bis STREAM-005 für Zug, Beweise, Uploadabbruch und Checkpoint-Wiederaufnahme bündeln.
-2. Zehnminütige Hafenrunde mit I/O-, GPU- und Residency-Telemetrie aufzeichnen.
-3. Fokus-, Crash-Recovery- und Save-Wiederaufnahmetests ausführen.
+1. Zehnminütige Hafenrunde mit I/O-, GPU- und Residency-Telemetrie aufzeichnen.
+2. Echten Prozessabbruch mit anschließendem Checkpoint-Relaunch sichtbar prüfen.
+3. Fokus- und Save-Wiederaufnahmetests auf realer Hardware ausführen.
 4. Sichtbaren Lauf auf dem physischen iPhone und reale Accessibility-Abnahme durchführen.
 5. G5-Abnahme mit Release-Build, GPU-Capture und echten Lizenznachweisen.
 
