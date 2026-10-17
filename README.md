@@ -8,7 +8,7 @@ Technischer Fan-Prototyp eines narrativen Stealth-Actionspiels im industriellen 
 
 **Stand:** 17. Oktober 2026  
 **Entwicklungsphase:** Vertical Slice G5  
-**Aktueller Arbeitsschritt:** Hafen-Streaming W2 abgeschlossen, W3 GPU-Staging als nächster Planpunkt
+**Aktueller Arbeitsschritt:** Hafen-Streaming W1–W5 plus W6-Diagnostik integriert; weitere STREAM-Abnahmefälle laufen
 **Reifegrad:** spielbarer Technikprototyp, nicht produktions- oder veröffentlichungsfertig
 
 | Bereich | Status | Aktueller Umfang |
@@ -20,7 +20,7 @@ Technischer Fan-Prototyp eines narrativen Stealth-Actionspiels im industriellen 
 | Gameplay | Vertical Slice | Bewegung, Schleichen, Wachen, Dialoge, Interaktionen und Missionsfortschritt |
 | Simulation | Vertical Slice | Deterministischer Takt, Hafenarbeiter, Zug, Schiffe und Liegeplatzlogik |
 | Speichern | Prototyp integriert | Versionierte Checkpoints mit Primary-/Backup-Datei und Wiederaufnahme |
-| Streaming | W2 integriert | Validierte Hafenzellen und atomarer CPU-Preload; GPU-Staging und dynamische Zellwechsel noch offen |
+| Streaming | W1–W6-Basis integriert | Zellplanung, CPU-/GPU-Residency, Culling, Speicherdruck, Referenzledger und Telemetrie |
 | Tests | Teilweise verifiziert | Letzter vollständiger Core-Lauf: 99/99; zusätzliche Audio-, Lizenz- und Streamingtests vorhanden |
 
 ## Plattform-Support
@@ -29,7 +29,7 @@ Technischer Fan-Prototyp eines narrativen Stealth-Actionspiels im industriellen 
 |---|---|---|
 | macOS / Apple Silicon | Erfolgreich gebaut | Primäre Entwicklungsplattform; manueller vollständiger Abnahmelauf offen |
 | iOS / iPad-Kompatibilitätsziel | Erfolgreich auf `My Mac (Designed for iPad)` gebaut | Start- und Menüfluss vorhanden |
-| Physisches iPhone | Nicht aktuell verifiziert | Das zuvor verwendete iPhone 17 Pro Max war beim letzten Build nicht verfügbar |
+| Physisches iPhone | Erfolgreich gebaut | `iPhone 17 Pro Max von kevin`; sichtbarer Gerätelauf weiterhin offen |
 | Linux | Kein App-Target | Nur Teile des plattformunabhängigen Swift-Kerns sind über SwiftPM nutzbar |
 
 Apple-Plattformen benötigen Xcode mit Metal-/MetalKit- und AVFAudio-Unterstützung. Konkrete Release-Mindestversionen sind noch nicht als stabiler öffentlicher Supportvertrag freigegeben.
@@ -55,6 +55,12 @@ Die momentane Xcode-Projektkonfiguration verwendet die Beta-SDK-Ziele iOS 27.2 u
 - Validiertes Asset-Lizenzregister, das Platzhalter erlaubt, aber einen Release nachvollziehbar blockiert
 - Abbrechbares CPU-Asset-Preloading mit atomarem Commit, Residency-Cache und prozeduralen Assettypen
 - W1/W2-Streamingverträge werden im macOS-Bundle geladen; der initiale Central-Preload ist zur Laufzeit nachgewiesen
+- W3 kopiert CPU-residente Daten per Metal-Blit in private GPU-Puffer und schaltet sie erst nach GPU-Completion sichtbar
+- Spielerposition priorisiert Fokus- und Nachbarzellen; veraltete Übergänge werden abgebrochen und entfernte Zellassets evictet
+- W4 blendet nur NPC-Renderrepräsentationen aus; Wach-, Arbeiter-, Quest- und Save-Zustände simulieren unverändert weiter
+- W5 reagiert auf macOS-Speicherdruck, reduziert Sichtweite und Renderbudget und hält beim Streaming nur die Fokuszelle resident
+- W6 erfasst Requests, Completions, Abbrüche, Fehler, Speicherdruck, CPU-Bytes, GPU-Sichtbarkeit und maximale Zellresidenz
+- Ein referenzgezählter Residency-Ledger schützt gemeinsam verwendete Assets und weist veraltete Commits zurück
 
 ## Noch nicht fertig
 
@@ -63,7 +69,7 @@ Die momentane Xcode-Projektkonfiguration verwendet die Beta-SDK-Ziele iOS 27.2 u
 - Vollständige Kampagne und offene Welt
 - Vollständiger iOS-Gameplay-Loop
 - Musik-Crossfades, Lautheitsabnahme und Geräte-Hörtests
-- GPU-Staging, dynamische Nachbarzellenwechsel und belastbare Geräte-Benchmarks
+- Vollständige STREAM-001-bis-005-Langzeittests und belastbare Geräte-Benchmarks
 - Finale VoiceOver-, Dynamic-Type-, Kontrast- und Motion-Safety-Abnahme auf Geräten
 - Release-Signing, Store-Verteilung, Lizenzprüfung und produktionsreifes Branding
 
@@ -115,17 +121,21 @@ Letzter bestätigter Stand:
 - W1-/W2-Manifest und Assetkatalog wurden im macOS-App-Bundle ohne Fallback geladen
 - Der Central-Preload lud Layout, Interaktionen und Pfade mit positiver residenter Bytezahl
 - Ein ausgeführter Fehlerpfad bestätigte atomaren Rollback und anschließende Cache-Wiederverwendung
-- Neun neue Audio-, Lizenz- und Streamingtests sind vorhanden; der abschließende SwiftPM-Gesamtlauf wurde zuletzt durch einen verwaisten lokalen `.build`-Lock verhindert
+- Vierundzwanzig neue Audio-, Lizenz- und Streamingtests sind vorhanden; der abschließende SwiftPM-Gesamtlauf wurde zuletzt durch einen verwaisten lokalen `.build`-Lock verhindert
+- Ein echter Metal-Blit bestätigte GPU-Sichtbarkeit nach Completion sowie vollständige Eviction
+- Ein Positionslauf bestätigte Central → Rail → Docks einschließlich deterministischer Nachbarpriorität und Eviction
+- Ein Culling-/Speicherdrucklauf hielt 41 Simulationskandidaten erhalten, reduzierte kritisches Rendering auf 12 und behielt eine entfernte alarmierte Wache sichtbar
+- Ein W6-Stresslauf bestätigte 100 duplikatfreie Rail-/Docks-Wechsel sowie getrennte Completion-, Abbruch-, Fehler- und Speicherdruckmetriken
 
 Details stehen in `Docs/Docs/Handoff/G5/BUILD_REPORT.md`, `TEST_REPORT.md` und `KNOWN_ISSUES.md`.
 
 ## Nächste Planpunkte
 
-1. W3: CPU-Daten kontrolliert in Metal-Ressourcen überführen und erst nach GPU-Completion sichtbar schalten.
-2. Positionsabhängige Nachbarzellen-Requests mit Prioritäten und Abbruch veralteter Requests.
-3. Eviction bei Speicherdruck, ohne Missions-, Quest- oder NPC-Identitäten zu verlieren.
-4. STREAM-001 bis STREAM-005 als reproduzierbare Laufzeitprüfungen ausführen.
-5. G5-Abnahme mit Release-Build, GPU-Capture, Crash-/Fokustest, Geräte-Accessibility und echten Lizenznachweisen.
+1. STREAM-002 bis STREAM-005 für Zug, Beweise, Uploadabbruch und Checkpoint-Wiederaufnahme bündeln.
+2. Zehnminütige Hafenrunde mit I/O-, GPU- und Residency-Telemetrie aufzeichnen.
+3. Fokus-, Crash-Recovery- und Save-Wiederaufnahmetests ausführen.
+4. Sichtbaren Lauf auf dem physischen iPhone und reale Accessibility-Abnahme durchführen.
+5. G5-Abnahme mit Release-Build, GPU-Capture und echten Lizenznachweisen.
 
 ## Repository-Struktur
 
